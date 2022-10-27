@@ -1,0 +1,18 @@
+{
+  "name": "program",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "pretty": "prettier --write ./*.json",
+    "build": "npm run start && npm run pretty"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@vitalets/google-translate-api": "^8.0.0",
+    "prettier": "2.7.1"
+  }
+}
