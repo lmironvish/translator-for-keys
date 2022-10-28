@@ -13,6 +13,7 @@
   "license": "ISC",
   "devDependencies": {
     "@vitalets/google-translate-api": "^8.0.0",
+    "glob": "^8.0.3",
     "prettier": "2.7.1"
   }
 }

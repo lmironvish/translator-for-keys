@@ -25,9 +25,11 @@ class FormatKey {
 
 
   async runWithEn() {
-    this.state[this._setEntityFile.name + "Ru"] = await this._setEntityFile(this.data.config.pathToWriteRuFile);
-    this.state[this._setEntityFile.name + "En"] = await this._setEntityFile(this.data.config.pathToWriteEnFile);
-    this._setArrWord();
+    this.state[this._setEntityFile.name + "Ru"] = await this._setEntityFile(this.state.config.pathToWriteRuFile);
+    this.state[this._setEntityFile.name + "En"] = await this._setEntityFile(this.state.config.pathToWriteEnFile);
+    this.state[this._setArrWord.name + "En"] = await this._setArrWord(this._setEntityFile.name + "En");
+    this.state[this._setArrWord.name + "Ru"] = await this._setArrWord(this._setEntityFile.name + "Ru");
+    this._loggerState();
     this._formatFile();
     this._setArrEnStrToCamelCase();
     this._keyOrganization();
@@ -75,12 +77,9 @@ class FormatKey {
     this.state[dataKey || this._translate.name] = arrWordTranslate;
   }
 
-  _setArrWord() {
-    this.state.arrWordRu = this.state.dataStrRu.split("\n");
-    this.state.arrWordEn = this.state.dataStrEn.split("\n");
-
-    this.state.arrWordRu = this.state.arrWordRu.filter((el) => el.length);
-    this.state.arrWordEn = this.state.arrWordEn.filter((el) => el.length);
+  _setArrWord(str) {
+    const data = str.split("\n")
+    return data.filter((el) => el.length)
   }
 
   _formatFile() {
@@ -186,4 +185,4 @@ const config = {
 };
 
 const formatKey = new FormatKey(config);
-formatKey.runChangeAttr();
+formatKey.runWithEn();
