@@ -1,160 +1,176 @@
-const fs = require("fs")
-const getTranslateWord = require("@vitalets/google-translate-api")
+const fs = require("fs");
+const path = require("path");
+const getTranslateWord = require("@vitalets/google-translate-api");
+const glob = require("glob")
 
 class FormatKey {
   constructor(config) {
     this.state = {
       config,
-      dataStrRu: "",
-      dataStrEn: "",
-      arrWordRu: [],
-      arrWordEn: [],
-      arrWordTranslate: [],
-      arrWordCamelCase: [],
-      dataObjRu: {},
-      dataObjEn: {},
-    }
+      // dataStrRu: "",
+      // dataStrEn: "",
+      // arrWordRu: [],
+      // arrWordEn: [],
+      // arrWordTranslate: [],
+      // arrWordCamelCase: [],
+      // dataObjRu: {},
+      // dataObjEn: {},
+    };
   }
+
+  async runChangeAttr() {
+    await this._getFilePath(config.folderPath, config.ex)
+    this._loggerState()
+  }
+
+
   async runWithEn() {
-    await this._setEntityRuFile()
-    await this._setEntityEnFile()
-    this._setArrWord()
-    this._formatFile()
-    this._setArrEnStrToCamelCase()
-    this._keyOrganization()
-    this._writeRuFile()
-    this._writeEnFile()
+    this.state[this._setEntityFile.name + "Ru"] = await this._setEntityFile(this.data.config.pathToWriteRuFile);
+    this.state[this._setEntityFile.name + "En"] = await this._setEntityFile(this.data.config.pathToWriteEnFile);
+    this._setArrWord();
+    this._formatFile();
+    this._setArrEnStrToCamelCase();
+    this._keyOrganization();
+    this._writeKeyFile();
   }
 
   async runWithoutEn() {
-    await this._setEntityRuFile()
-    this._setArrWord()
-    this._formatFile()
-    await this._translate()
-    this._setArrStrToCamelCase()
-    this._keyOrganization()
-    this._writeRuFile()
+    this.state[this._setEntityFile.name + "Ru"] = await this._setEntityFile(this.data.config.pathToWriteRuFile);
+    this._setArrWord();
+    this._formatFile();
+    await this._translate();
+    this._setArrStrToCamelCase();
+    this._keyOrganization();
+    this._writeKeyFile();
   }
 
-  async _setEntityRuFile() {
+  async _setEntityFile(filePath) {
     const data = await new Promise((resolve, reject) => {
       try {
-        fs.readFile(this.state.config.pathToReadRuFile, "utf8", (err, data) => {
-          resolve(data)
-        })
+        fs.readFile(filePath, "utf8", (err, data) => {
+          resolve(data);
+        });
       } catch (err) {
-        console.error(err)
-        reject(err)
+        console.error(err);
+        reject(err);
       }
-    })
+    });
 
-    this.state.dataStrRu = data
+    return data;
   }
 
-  async _setEntityEnFile() {
-    const data = await new Promise((resolve, reject) => {
-      try {
-        fs.readFile(this.state.config.pathToReadEnFile, "utf8", (err, data) => {
-          resolve(data)
-        })
-      } catch (err) {
-        console.error(err)
-        reject(err)
-      }
-    })
+  async _translate(dataKey, translateFrom, translateTo) {
+    const arrReq = [];
 
-    this.state.dataStrEn = data
+    this.state.arrWordRu.forEach((el) => {
+      const res = getTranslateWord(el, {
+        from: translateFrom,
+        to: translateTo,
+      });
+      arrReq.push(res);
+    });
+
+    const res = await Promise.all(arrReq);
+    const arrWordTranslate = res.map((el) => el.text);
+    this.state[dataKey || this._translate.name] = arrWordTranslate;
   }
 
   _setArrWord() {
-    this.state.arrWordRu = this.state.dataStrRu.split("\n")
-    this.state.arrWordEn = this.state.dataStrEn.split("\n")
+    this.state.arrWordRu = this.state.dataStrRu.split("\n");
+    this.state.arrWordEn = this.state.dataStrEn.split("\n");
 
-    this.state.arrWordRu = this.state.arrWordRu.filter((el) => el.length)
-    this.state.arrWordEn = this.state.arrWordEn.filter((el) => el.length)
+    this.state.arrWordRu = this.state.arrWordRu.filter((el) => el.length);
+    this.state.arrWordEn = this.state.arrWordEn.filter((el) => el.length);
   }
 
   _formatFile() {
     this.state.arrWordRu = this.state.arrWordRu.filter(
       (el) => !el.includes("↓")
-    )
-  }
-
-  async _translate() {
-    const arrReq = []
-
-    this.state.arrWordRu.forEach((el) => {
-      const res = getTranslateWord(el, {
-        from: this.state.config.translateFrom,
-        to: this.state.config.translateTo,
-      })
-      arrReq.push(res)
-    })
-
-    const res = await Promise.all(arrReq)
-    const arrWordTranslate = res.map((el) => el.text)
-    this.state.arrWordTranslate = arrWordTranslate
-  }
-
-  _loggerState() {
-    console.log(this.state)
+    );
   }
 
   _setArrStrToCamelCase() {
-    const data = []
+    const data = [];
 
     this.state.arrWordTranslate.forEach((el) => {
-      const arr = el.split(" ")
+      const arr = el.split(" ");
       const newArr = arr.map((elem, index) => {
         if (index === 0) {
-          return elem.toLowerCase()
+          return elem.toLowerCase();
         }
-        return elem[0].toUpperCase() + elem.slice(1)
-      })
+        return elem[0].toUpperCase() + elem.slice(1);
+      });
 
-      const strCamelCase = newArr.slice(0, 4).join("")
-      data.push(strCamelCase)
-    })
+      const strCamelCase = newArr.slice(0, 4).join("");
+      data.push(strCamelCase);
+    });
 
-    this.state.arrWordCamelCase = data
+    this.state.arrWordCamelCase = data;
   }
 
   _setArrEnStrToCamelCase() {
-    const data = []
+    const data = [];
 
     this.state.arrWordEn.forEach((el) => {
-      const arr = el.split(" ")
+      const arr = el.split(" ");
       const newArr = arr.map((elem, index) => {
         if (index === 0) {
-          return elem.toLowerCase()
+          return elem.toLowerCase();
         }
-        return elem[0].toUpperCase() + elem.slice(1)
-      })
+        return elem[0].toUpperCase() + elem.slice(1);
+      });
 
-      const strCamelCase = newArr.slice(0, 4).join("")
-      data.push(strCamelCase)
-    })
+      const strCamelCase = newArr.slice(0, 4).join("");
+      data.push(strCamelCase);
+    });
 
-    this.state.arrWordCamelCase = data
+    this.state.arrWordCamelCase = data;
   }
 
   _keyOrganization() {
     this.state.arrWordCamelCase.forEach((el, index) => {
-      this.state.dataObjRu[el] = this.state.arrWordRu[index]
-      this.state.dataObjEn[el] = this.state.arrWordEn[index]
-    })
+      this.state.dataObjRu[el] = this.state.arrWordRu[index];
+      this.state.dataObjEn[el] = this.state.arrWordEn[index];
+    });
   }
-  _writeRuFile() {
+
+  _writeKeyFile() {
     fs.writeFileSync(
       this.state.config.pathToWriteRuFile,
       JSON.stringify(this.state.dataObjRu)
-    )
+    );
   }
-  _writeEnFile() {
-    fs.writeFileSync(
-      this.state.config.pathToWriteEnFile,
-      JSON.stringify(this.state.dataObjEn)
-    )
+
+  _writeFile(arrFile) {
+    arrFile.forEach(item => {
+      fs.writeFileSync(
+        item.path,
+        item.content
+      );
+    })
+  }
+
+  async _getFilePath(folderPath, ex) {
+    const result = await new Promise(resolve => {
+      glob(`**/*.${ex}`, {}, (err, files) => {
+        try {
+          console.log("reading file path...")
+          resolve(files)
+        } catch (err) {
+          console.log(err)
+        }
+      })
+    })
+
+    this.state[this._getFilePath.name] = result
+  }
+
+  _getRegExpAttr(labelStartName) {
+    const reg = new RegExp(`^(${labelStartName}=")(([а-яА-Я]+)(\s*)([а-яА-Я]+))+"$`,"g")
+  }
+
+  _loggerState() {
+    console.log(this.state);
   }
 }
 
@@ -165,7 +181,9 @@ const config = {
   pathToWriteEnFile: "./output-test-en.json",
   translateFrom: "ru",
   translateTo: "en",
-}
+  folderPath: "./src",
+  ex: "vue",
+};
 
-const formatKey = new FormatKey(config)
-formatKey.runWithEn()
+const formatKey = new FormatKey(config);
+formatKey.runChangeAttr();
