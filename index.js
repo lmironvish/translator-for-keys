@@ -26,14 +26,14 @@ class FormatKey {
 
   async runWithEn() {
     this.state[this._setEntityFile.name + "Ru"] = await this._setEntityFile(this.state.config.pathToWriteRuFile);
-    this.state[this._setEntityFile.name + "En"] = await this._setEntityFile(this.state.config.pathToWriteEnFile);
-    this.state[this._setArrWord.name + "En"] = await this._setArrWord(this._setEntityFile.name + "En");
-    this.state[this._setArrWord.name + "Ru"] = await this._setArrWord(this._setEntityFile.name + "Ru");
+    // this.state[this._setEntityFile.name + "En"] = await this._setEntityFile(this.state.config.pathToWriteEnFile);
+    // this.state[this._setArrWord.name + "En"] = await this._setArrWord(this._setEntityFile.name + "En");
+    // this.state[this._setArrWord.name + "Ru"] = await this._setArrWord(this._setEntityFile.name + "Ru");
     this._loggerState();
-    this._formatFile();
-    this._setArrEnStrToCamelCase();
-    this._keyOrganization();
-    this._writeKeyFile();
+    // this._formatFile();
+    // this._setArrEnStrToCamelCase();
+    // this._keyOrganization();
+    // this._writeKeyFile();
   }
 
   async runWithoutEn() {
@@ -174,8 +174,8 @@ class FormatKey {
 }
 
 const config = {
-  pathToReadRuFile: "./in-testRu.txt",
-  pathToReadEnFile: "./in-testEn.txt",
+  pathToReadRuFile: "./input-global-ru.txt",
+  pathToReadEnFile: "./input-global-en.txt",
   pathToWriteRuFile: "./output-test-ru.json",
   pathToWriteEnFile: "./output-test-en.json",
   translateFrom: "ru",
