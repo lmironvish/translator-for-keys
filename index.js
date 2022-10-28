@@ -19,7 +19,7 @@ class FormatKey {
   }
 
   async runChangeAttr() {
-    await this._getFilePath(config.folderPath, config.ex)
+    this.state[this._getFilePath.name] = await this._getFilePath(config.folderPath, config.ex)
     this._loggerState()
   }
 
@@ -161,7 +161,7 @@ class FormatKey {
       })
     })
 
-    this.state[this._getFilePath.name] = result
+    return result
   }
 
   _getRegExpAttr(labelStartName) {
