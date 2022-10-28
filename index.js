@@ -7,10 +7,27 @@ class FormatKey {
   constructor(config) {
     this.state = {
       config,
+      attr: {},
     };
   }
 
   async runChangeAttr() {
+    const dataObj = this.state.attr
+
+    dataObj["arrFilePath"] = await this._getFilePath(config.folderPath, config.ex)
+
+    function replacer(match, p1, p2, p3, payload) {
+      console.log("work");
+      return `${p1}${payload}${p3}`
+    }
+
+    dataObj["arrFilePath"].forEach(pathName => {
+      dataObj["fileEntity"] = this._getEntityFile(pathName)
+      dataObj["fileEntity"].replace(this._getRegExpAttr("label"), (match, p1, p2, p3) => replacer(match, p1, p2, p3, "testfunction"))
+      console.log(dataObj["fileEntity"]);
+    })
+
+    this._loggerState()
     this.state[this._getFilePath.name] = await this._getFilePath(
       config.folderPath,
       config.ex
@@ -93,19 +110,12 @@ class FormatKey {
     );
   }
 
-  async _setEntityFile(filePath) {
-    const data = await new Promise((resolve, reject) => {
+  _getEntityFile(filePath) {
       try {
-        fs.readFile(filePath, "utf8", (err, data) => {
-          resolve(data);
-        });
+        return fs.readFileSync(filePath, "utf8");
       } catch (err) {
         console.error(err);
-        reject(err);
       }
-    });
-
-    return data;
   }
 
   async _translate(dataKey, translateFrom, translateTo) {
@@ -206,6 +216,7 @@ class FormatKey {
   }
 
   _getRegExpAttr(labelStartName) {
+    const reg = new RegExp(`(${labelStartName}=")([а-яА-Я]+\s*[а-яА-Я]+)+(")`,"gim")
     const reg = new RegExp(
       `^(${labelStartName}=")(([а-яА-Я]+)(\s*)([а-яА-Я]+))+"$`,
       "g"
@@ -229,4 +240,5 @@ const config = {
 };
 
 const formatKey = new FormatKey(config);
-formatKey.runWithoutEn();
+formatKey.runChangeAttr();
+
