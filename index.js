@@ -11,103 +11,102 @@ class FormatKey {
     };
   }
 
-  async runChangeAttr() {
+  async runChangeAttr(settings) {
     const dataObj = this.state.attr
 
     dataObj["arrFilePath"] = await this._getFilePath(config.folderPath, config.ex)
 
-    function replacer(match, p1, p2, p3, payload) {
-      console.log("work");
-      return `${p1}${payload}${p3}`
-    }
-
     dataObj["arrFilePath"].forEach(pathName => {
       dataObj["fileEntity"] = this._getEntityFile(pathName)
-      dataObj["fileEntity"].replace(this._getRegExpAttr("label"), (match, p1, p2, p3) => replacer(match, p1, p2, p3, "testfunction"))
+      dataObj["fileEntity"] = this._getReplacedString(dataObj["fileEntity"], settings.attrName, "test")
+
       console.log(dataObj["fileEntity"]);
     })
 
     this._loggerState()
-    this.state[this._getFilePath.name] = await this._getFilePath(
-      config.folderPath,
-      config.ex
-    );
-    this._loggerState();
   }
 
   async runWithEn() {
-    this.state[this._setEntityFile.name + "Ru"] = await this._setEntityFile(
+    this.state["entityFileRu"] = await this._getEntityFile(
       this.state.config.pathToReadRuFile
     );
-    this.state[this._setEntityFile.name + "En"] = await this._setEntityFile(
+    this.state["entityFileEn"] = await this._getEntityFile(
       this.state.config.pathToReadEnFile
     );
-    this.state[this._setArrWord.name + "Ru"] = await this._setArrWord(
-      this.state[this._setEntityFile.name + "Ru"]
+    this.state["arrWordRu"] = await this._setArrWord(
+      this.state["entityFileRu"]
     );
-    this.state[this._setArrWord.name + "En"] = await this._setArrWord(
-      this.state[this._setEntityFile.name + "En"]
+    this.state["arrWordEn"] = await this._setArrWord(
+      this.state["entityFileEn"]
     );
-    this.state[this._formatFile.name + "En"] = this._formatFile(
-      this.state[this._setArrWord.name + "En"]
+    this.state["formatFileEn"] = this._formatFile(
+      this.state["arrWordEn"]
     );
-    this.state[this._formatFile.name + "Ru"] = this._formatFile(
-      this.state[this._setArrWord.name + "Ru"]
+    this.state["formatFileRu"] = this._formatFile(
+      this.state["arrWordRu"]
     );
-    this.state[this._setArrEnStrToCamelCase.name] =
-      this._setArrEnStrToCamelCase(this.state[this._formatFile.name + "En"]);
-    this.state[this._keyOrganization.name + "En"] = this._keyOrganization(
-      this.state[this._setArrEnStrToCamelCase.name],
-      this.state[this._formatFile.name + "En"]
+    this.state["arrEnStrToCamelCase"] =
+      this._setArrEnStrToCamelCase(this.state["formatFileEn"]);
+    this.state["keyOrganizationEn"] = this._keyOrganization(
+      this.state["arrEnStrToCamelCase"],
+      this.state["formatFileEn"]
     );
-    this.state[this._keyOrganization.name + "Ru"] = this._keyOrganization(
-      this.state[this._setArrEnStrToCamelCase.name],
-      this.state[this._formatFile.name + "Ru"]
+    this.state["keyOrganizationRu"] = this._keyOrganization(
+      this.state["arrEnStrToCamelCase"],
+      this.state["formatFileRu"]
     );
     this._writeKeyFile(
       this.state.config.pathToWriteRuFile,
-      this.state[this._keyOrganization.name + "Ru"]
+      this.state["keyOrganizationRu"]
     );
     this._writeKeyFile(
       this.state.config.pathToWriteEnFile,
-      this.state[this._keyOrganization.name + "En"]
+      this.state["keyOrganizationEn"]
     );
   }
 
   async runWithoutEn() {
-    this.state[this._setEntityFile.name + "Ru"] = await this._setEntityFile(
+    this.state["setEntityFileRu"] = await this._getEntityFile(
       this.state.config.pathToReadRuFile
     );
-    this.state[this._setArrWord.name + "Ru"] = await this._setArrWord(
-      this.state[this._setEntityFile.name + "Ru"]
+    this.state["arrWordRu"] = await this._setArrWord(
+      this.state["entityFileRu"]
     );
-    this.state[this._formatFile.name + "Ru"] = this._formatFile(
-      this.state[this._setArrWord.name + "Ru"]
+    this.state["formatFileRu"] = this._formatFile(
+      this.state["setArrWordRu"]
     );
-    this.state[this._translate.name] = await this._translate(
-      this.state[this._formatFile.name + "Ru"],
+    this.state["translate"] = await this._translate(
+      this.state["formatFileRu"],
       this.state.config.translateFrom,
       this.state.config.translateTo
     );
-    this.state[this._setArrWord.name + "En"] = this.state[this._translate.name]
-    this.state[this._setArrEnStrToCamelCase.name] =
-      this._setArrEnStrToCamelCase(this.state[this._translate.name]);
-    this.state[this._keyOrganization.name + "En"] = this._keyOrganization(
-      this.state[this._setArrEnStrToCamelCase.name],
-      this.state[this._setArrWord.name + "En"]
+    this.state["arrWordEn"] = this.state["translate"]
+    this.state["arrEnStrToCamelCase"] =
+      this._setArrEnStrToCamelCase(this.state["translate"]);
+    this.state["keyOrganizationEn"] = this._keyOrganization(
+      this.state["arrEnStrToCamelCase"],
+      this.state["arrWordEn"]
     );
-    this.state[this._keyOrganization.name + "Ru"] = this._keyOrganization(
-      this.state[this._setArrEnStrToCamelCase.name],
-      this.state[this._formatFile.name + "Ru"],
+    this.state["keyOrganizationRu"] = this._keyOrganization(
+      this.state["arrEnStrToCamelCase"],
+      this.state["formatFileRu"],
     );
     this._writeKeyFile(
       this.state.config.pathToWriteRuFile,
-      this.state[this._keyOrganization.name + "Ru"]
+      this.state["keyOrganizationRu"]
     );
     this._writeKeyFile(
       this.state.config.pathToWriteEnFile,
-      this.state[this._keyOrganization.name + "En"]
+      this.state["keyOrganizationEn"]
     );
+  }
+
+  _getReplacedString(fileEntity, attrName, replaceValue) {
+    function replacer(match, p1, p2, p3, payload) {
+      return `${p1}${payload}${p3}`
+    }
+
+    return fileEntity.replace(this._getRegExpAttr(attrName), (match, p1, p2, p3) => replacer(match, p1, p2, p3, replaceValue))
   }
 
   _getEntityFile(filePath) {
@@ -216,11 +215,7 @@ class FormatKey {
   }
 
   _getRegExpAttr(labelStartName) {
-    const reg = new RegExp(`(${labelStartName}=")([а-яА-Я]+\s*[а-яА-Я]+)+(")`,"gim")
-    const reg = new RegExp(
-      `^(${labelStartName}=")(([а-яА-Я]+)(\s*)([а-яА-Я]+))+"$`,
-      "g"
-    );
+    return new RegExp(`(${labelStartName}=")([а-яА-Я]+\s*[а-яА-Я]+)+(")`,"gim")
   }
 
   _loggerState() {
@@ -235,10 +230,12 @@ const config = {
   pathToWriteEnFile: "./output-test-en.json",
   translateFrom: "ru",
   translateTo: "en",
-  // folderPath: "./src",
-  // ex: "vue",
+  folderPath: "./src",
+  ex: "vue",
 };
 
 const formatKey = new FormatKey(config);
-formatKey.runChangeAttr();
+formatKey.runChangeAttr({
+  attrName: "label"
+});
 
