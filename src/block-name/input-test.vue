@@ -21,6 +21,9 @@
           inline
           label="Фамилия"
           label="Фамилия"
+          label="Фамилий"
+          label="Фамилии"
+          label="Фамилию"
           :width="25"
           :validator="$v.fields.lastName.value"
           :customErrors="fields.lastName.customErrors"
