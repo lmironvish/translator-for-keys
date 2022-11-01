@@ -7,23 +7,61 @@ class FormatKey {
   constructor(config) {
     this.state = {
       config,
-      attr: {},
+      entityFileEn: {
+        academyAdministrator: "Academy Administrator",
+        acceptedByMember: "Accepted by member",
+        additionalStatus: "Additional status",
+        administrator: "Administrator",
+        allowTestsForEveryone: "Allow tests for everyone",
+        answer: "Answer",
+      },
+      entityFileRu: {
+        academyAdministrator: "Руководитель продаж",
+        acceptedByMember: "Принято участником",
+        additionalStatus: "Доп.статус",
+        administrator: "Суперадминистратор",
+        allowTestsForEveryone: "Разрешение тестов всем",
+        answer: "Ответ",
+      },
+      entityNormalize: {
+        "Руководитель продаж": "academyAdministrator",
+        "Принято участником": "acceptedByMember",
+        "Доп.статус": "additionalStatus",
+        "Суперадминистратор": "administrator",
+        "Разрешение тестов всем": "allowTestsForEveryone",
+        "Ответ": "answer",
+      },
+      attr: {
+        arrFilePath: [],
+        fileEntity: "",
+        arrMatch: [],
+        fileEntityOutput: "",
+      },
     };
   }
 
   async runChangeAttr(settings) {
-    const dataObj = this.state.attr
+    this.state.attr.arrFilePath = await this._getFilePath(config.folderPath, config.ex)
 
-    dataObj["arrFilePath"] = await this._getFilePath(config.folderPath, config.ex)
-
-    dataObj["arrFilePath"].forEach(pathName => {
-      dataObj["fileEntity"] = this._getEntityFile(pathName)
-      dataObj["fileEntity"] = this._getReplacedString(dataObj["fileEntity"], settings.attrName, "test")
-
-      console.log(dataObj["fileEntity"]);
+    this.state.attr.arrFilePath.forEach(pathName => {
+      this.state.attr.fileEntity = this._getEntityFile(pathName)
+      this.state.attr.fileEntityOutput = this._getEntityFile(pathName)
+      this.state.attr.arrMatch = this.state.attr.fileEntity.match(this._getRegExpAttr(settings.attrName))
+      this._setFileEntityOutput(settings)
     })
 
     this._loggerState()
+  }
+
+  _setFileEntityOutput(settings) {
+    this.state.attr.arrMatch.forEach(mat => {
+        const wordRu = mat.search(/([а-яА-Я]+\s*[а-яА-Я]+)+/)
+        const wordRuTranslate = this.state.entityNormalize[wordRu]
+
+        if(wordRuTranslate) {
+          this.state.attr.fileEntityOutput = this._getReplacedString(this.state.attr.fileEntityOutput, settings.attrName, `$t(global.${wordRuTranslate})`)
+        }
+    })
   }
 
   async runWithEn() {
@@ -101,12 +139,14 @@ class FormatKey {
     );
   }
 
-  _getReplacedString(fileEntity, attrName, replaceValue) {
-    function replacer(match, p1, p2, p3, payload) {
-      return `${p1}${payload}${p3}`
+  _getReplacedAttr(fileEntity, attrName, replaceValue) {
+    function replacer(match, p1, p2, p3, p4, payload) {
+      return `:${p1}${payload}${p4}`
     }
 
-    return fileEntity.replace(this._getRegExpAttr(attrName), (match, p1, p2, p3) => replacer(match, p1, p2, p3, replaceValue))
+    const regExp = new RegExp(`(${attrName}=")(([а-яА-Я]+\s*)*)(")`)
+
+    return fileEntity.replace(this._getRegExpAttr(attrName), (match, p1, p2, p3, p4) => replacer(match, p1, p2, p3, replaceValue))
   }
 
   _getEntityFile(filePath) {
@@ -216,6 +256,10 @@ class FormatKey {
 
   _getRegExpAttr(labelStartName) {
     return new RegExp(`(${labelStartName}=")([а-яА-Я]+\s*[а-яА-Я]+)+(")`,"gim")
+  }
+
+  _getRegExpValue() {
+    return new RegExp(`\w+="([а-яА-Я]+s*[а-яА-Я]+)+`)
   }
 
   _loggerState() {
