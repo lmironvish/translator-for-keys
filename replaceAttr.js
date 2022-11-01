@@ -28,28 +28,30 @@ class ReplaceAttr {
       this.state.fileEntity = this._getEntityFile(pathName)
       this.state.fileEntityOutput = this._getEntityFile(pathName)
 
-      const reg = new RegExp(`(${this.state.config.attrName}=")([а-яА-Я]+\\s*[а-яА-Я]+)+(")`,"gim")
+      const reg = new RegExp(`(\\s${this.state.config.attrName}=")([а-яА-Я]+\\s*)+(")`,"gim")
 
       this.state.arrMatch = this.state.fileEntity.match(reg)
 
 
       if(this.state.arrMatch) {
+        console.log("find match attr");
         this._setFileEntityOutput()
 
         this._writeFile([{path: "./noTranslate.json", content: JSON.stringify(this.state.noTranslate) }])
-
-        fs.mkdirSync(path.dirname(`./build/${pathName.slice(6)}`), {recursive: true})
-        fs.writeFileSync(`./build/${pathName.slice(6)}`, this.state.fileEntityOutput)
       }
+
+      fs.mkdirSync(path.dirname(`./build/${pathName.slice(6)}`), {recursive: true})
+      fs.writeFileSync(`./build/${pathName.slice(6)}`, this.state.fileEntityOutput)
     })
   }
 
   _setFileEntityOutput() {
     this.state.arrMatch.forEach(mat => {
-      const wordRu = mat.match(/([а-яА-Я]+\s*[а-яА-Я]+)+/)[0]
+      const wordRu = mat.match(/([а-яА-Я]+\s*)+/)[0]
       const wordRuTranslate = this.state.entityNormalize[wordRu]
 
       if(wordRuTranslate) {
+        console.log("find translate");
         this.state.fileEntityOutput = this._getReplacedAttr(this.state.fileEntityOutput, this.state.config.attrName, wordRu, `$t('global.${wordRuTranslate}')`)
       } else {
         this.state.noTranslate[wordRu] = ""
@@ -58,13 +60,13 @@ class ReplaceAttr {
   }
 
   _getReplacedAttr(fileEntity, attrName, wordReplace, replaceValue) {
-    function replacer(match, p1, p2, p3, payload) {
-      return `:${p1}${payload}${p3}`
+    function replacer(match, p1, p2, p3, p4, payload) {
+      return `${p1}:${p2}${payload}${p4}`
     }
 
-    const regExp = new RegExp(`(${attrName}=")(${wordReplace})(")`)
+    const regExp = new RegExp(`(\\s)(${attrName}=")(${wordReplace})(")`)
 
-    return fileEntity.replace(regExp, (match, p1, p2, p3, p4) => replacer(match, p1, p2, p3, replaceValue))
+    return fileEntity.replace(regExp, (match, p1, p2, p3, p4) => replacer(match, p1, p2, p3, p4, replaceValue))
   }
 
   _getEntityFile(filePath) {
