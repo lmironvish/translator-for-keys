@@ -1,43 +1,45 @@
 <template>
-  <div
-    v-if="activeMode !== 'default'"
-    class="page-training-heads page-container"
-  >
-    <page-header
-      :header="
-        activeMode === 'create'
-          ? 'Создать руководителя обучения'
-          : 'Редактировать руководителя обучения'
-      "
-    />
-    <form class="page-training-regions__form" @submit.prevent="submitEdit">
-      <div class="page-templates__form-fields">
-        <form-field inline :width="100" v-if="webinarsShow">
-          <checkbox-block v-model="fields.canCreateWebinar.value">
-            Может создавать вебинары
-          </checkbox-block>
-        </form-field>
-        <form-field
-          inline
-          label="Фамилия"
-          label="Фамилия"
-          label="Фамилий"
-          label="Фамилии"
-          label="Фамилию"
-          :width="25"
-          :validator="$v.fields.lastName.value"
-          :customErrors="fields.lastName.customErrors"
+  <div class="page-auth">
+    <div class="page-auth__content">
+      <select-lang class="page-auth__lang" :is-dark-theme="true" />
+      <component
+        :is="isLogin ? 'div' : 'router-link'"
+        :to="{ name: 'auth.Login' }"
+        class="page-auth__logo"
+      ></component>
+      <router-view class="page-auth__router" />
+      <support-block class="page-auth__support" />
+      <div class="page-auth__legal-documents-box">
+        <button
+          class="page-auth__legal-documents-button"
+          :class="getClassActiveButton"
+          @click="isVisibleLegalDocuments = !isVisibleLegalDocuments"
         >
-          <filter-input
-            :field="fields.lastName"
-            :has-error="
-              $v.fields.lastName.value.$error ||
-              hasCustomErrors(fields.lastName)
-            "
-            @input="fields.lastName.value = $event.value"
+          Правовые документы
+        </button>
+        <slide-toggle
+          class="page-auth__legal-documents-button-slide-toggle"
+        >
+          <legal-documents
+            class="page-auth__legal-documents"
+            v-if="isVisibleLegalDocuments"
           />
-        </form-field>
+        </slide-toggle>
       </div>
-    </form>
+      <transition
+        :name="
+                    $mq === 'mobile' ? 'slide-from-bottom' : 'slide-from-right'
+                "
+      >
+        <help-block v-if="isHelpOpen" @close="isHelpOpen = false" />
+      </transition>
+      <transition name="page-auth__fade">
+        <div
+          v-if="isHelpOpen"
+          class="page-auth__blackout"
+          @click="isHelpOpen = false"
+        ></div>
+      </transition>
+    </div>
   </div>
 </template>
